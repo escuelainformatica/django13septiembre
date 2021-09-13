@@ -11,12 +11,23 @@ from rest_app.models import Factura
 
 
 def listarFacturas(request):
-    resultado1=list(Factura.objects.all().values())
+    # .prefetch_related('detallefacturas') leer los campos relacional que falta
+    # .select_related('detallefacturas')  Lee un campo relacional que falta
+    query=Factura.objects.prefetch_related('detallefacturas').all() # dos queryset
+    listadoFacturas=list(query.values()) # listado [ {dict.},{dict}]
+    posicion=0
+    for valor in query:
+        listadoFacturas[posicion]['detallefacturas']=list(valor.detallefacturas.all().values())
+        posicion=posicion+1
+
     # resultado=list(Factura.objects.all()) # devuelvo el listado comun una consulta (query)
-    return JsonResponse(resultado1,safe=False)
+    return JsonResponse(listadoFacturas,safe=False)
 
 def obtenerFactura(request,id):
-    resultado1=model_to_dict(Factura.objects.get(id=id))
+    # .select_related('detallefacturas')
+    tmp=Factura.objects.prefetch_related('detallefacturas').get(id=id) # queryset
+    resultado1=model_to_dict(tmp) # convierto la factura en un diccionario (no incluye detallefacturas)
+    resultado1["detallefacturas"]=list( tmp.detallefacturas.all().values())
     return JsonResponse(resultado1, safe=False)
 
 @csrf_exempt # <--- @algo antes de una clase o funcion es un decorador.
