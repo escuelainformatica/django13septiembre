@@ -17,6 +17,7 @@ def listarFacturas(request):
     listadoFacturas=list(query.values()) # listado [ {dict.},{dict}]
     posicion=0
     for valor in query:
+        listadoFacturas[posicion]["cliente"]=model_to_dict(valor.idcliente)
         listadoFacturas[posicion]['detallefacturas']=list(valor.detallefacturas.all().values())
         posicion=posicion+1
 
@@ -27,6 +28,7 @@ def obtenerFactura(request,id):
     # .select_related('detallefacturas')
     tmp=Factura.objects.prefetch_related('detallefacturas').get(id=id) # queryset
     resultado1=model_to_dict(tmp) # convierto la factura en un diccionario (no incluye detallefacturas)
+    resultado1["cliente"]=model_to_dict(tmp.idcliente)
     resultado1["detallefacturas"]=list( tmp.detallefacturas.all().values())
     return JsonResponse(resultado1, safe=False)
 
